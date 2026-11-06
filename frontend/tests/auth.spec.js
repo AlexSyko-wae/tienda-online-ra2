@@ -1,0 +1,42 @@
+import { test, expect } from '@playwright/test';
+
+test('registro login persistencia refresh y logout contra Django real', async ({ page }) => {
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login$/);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page.getByText('Escribe tu correo.', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Crea tu cuenta' }).click();
+  const stamp = Date.now();
+  const email = `e2e${stamp}@example.com`;
+  const password = 'Cactus-Lunar-58!';
+  await page.getByLabel('Nombre', { exact: true }).fill('Alex');
+  await page.getByLabel('Usuario', { exact: true }).fill(`e2e${stamp}`);
+  await page.getByLabel('Correo electrónico', { exact: true }).fill(email);
+  await page.getByLabel('Teléfono (opcional)', { exact: true }).fill('6531234567');
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
+  await page.getByLabel('Confirmar contraseña', { exact: true }).fill(password);
+  await page.getByRole('button', { name: /Crear mi cuenta/ }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await page.getByLabel('Correo electrónico', { exact: true }).fill(email);
+  await page.getByLabel('Contraseña', { exact: true }).fill('incorrecta');
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page.getByRole('heading', { name: 'Hola, Alex.' })).toBeVisible();
+  await expect(page.getByText(email, { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Hola, Alex.' })).toBeVisible();
+  await page.evaluate(() => {
+    const tokens = JSON.parse(localStorage.getItem('tienda.session'));
+    tokens.access = 'invalido-para-probar-renovacion';
+    localStorage.setItem('tienda.session', JSON.stringify(tokens));
+  });
+  const renewed = page.waitForResponse(r => r.url().endsWith('/auth/token/refresh/') && r.status() === 200);
+  await page.reload(); await renewed;
+  await expect(page.getByRole('heading', { name: 'Hola, Alex.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Cerrar sesión ↗' }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  expect(await page.evaluate(() => localStorage.getItem('tienda.session'))).toBeNull();
+  await page.goto('/dashboard'); await expect(page).toHaveURL(/\/login$/);
+});

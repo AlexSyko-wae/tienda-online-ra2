@@ -1,0 +1,2 @@
+import { Link } from 'react-router-dom';
+export function Home() { return <main className="home"><p className="eyebrow">BIENVENIDO A TIENDA ONLINE</p><h1>Un espacio<br />que se siente <em>tuyo.</em></h1><p>Conecta con tu cuenta y descubre tu panel personal.</p><Link className="primary-link" to="/login">Entrar a mi espacio ↗</Link><Link className="secondary-link" to="/register">Crear una cuenta</Link></main>; }

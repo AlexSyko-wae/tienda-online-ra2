@@ -39,3 +39,10 @@ htmlcov/
 *.temp
 !.env.example
 node_modules/
+
+# Build del frontend
+frontend/dist/
+*.sqlite3
+
+frontend/test-results/
+frontend/playwright-report/

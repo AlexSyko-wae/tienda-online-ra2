@@ -82,3 +82,42 @@ class UserSecurityTests(TestCase):
     def test_delete(self):
         self.assertEqual(self.client.delete(self.url).status_code, 204)
         self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
+
+
+class RegistrationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = '/api/v1/auth/register/'
+        self.data = {'username': 'registro', 'email': 'registro@example.com',
+                     'first_name': 'Alex', 'telefono': '6531234567',
+                     'password': 'Tropical-Cactus-88!', 'password_confirm': 'Tropical-Cactus-88!'}
+
+    def test_register_and_login_without_privileges(self):
+        r = self.client.post(self.url, {**self.data, 'is_staff': True, 'is_superuser': True}, format='json')
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertNotIn('password', r.data)
+        self.assertNotIn('password_confirm', r.data)
+        u = User.objects.get(email=self.data['email'])
+        self.assertFalse(u.is_staff)
+        self.assertFalse(u.is_superuser)
+        self.assertTrue(u.check_password(self.data['password']))
+        login = self.client.post('/api/v1/auth/token/', {'email': self.data['email'], 'password': self.data['password']}, format='json')
+        self.assertEqual(login.status_code, 200)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + login.data['access'])
+        self.assertEqual(self.client.get('/api/v1/auth/me/').data['telefono'], '6531234567')
+        self.assertEqual(self.client.get('/api/v1/users/').status_code, 403)
+
+    def test_rejects_confirmation_mismatch_and_weak_password(self):
+        for values in [{'password_confirm': 'Otra-Example-99!'}, {'password': '123', 'password_confirm': '123'}]:
+            self.assertEqual(self.client.post(self.url, {**self.data, **values}, format='json').status_code, 400)
+        self.assertEqual(User.objects.count(), 0)
+
+    def test_duplicate_registration(self):
+        self.assertEqual(self.client.post(self.url, self.data, format='json').status_code, 201)
+        self.assertEqual(self.client.post(self.url, self.data, format='json').status_code, 400)
+
+    def test_cors_allows_vite_only(self):
+        allowed = self.client.options(self.url, HTTP_ORIGIN='http://127.0.0.1:5173', HTTP_ACCESS_CONTROL_REQUEST_METHOD='POST')
+        self.assertEqual(allowed['Access-Control-Allow-Origin'], 'http://127.0.0.1:5173')
+        denied = self.client.options(self.url, HTTP_ORIGIN='https://untrusted.example', HTTP_ACCESS_CONTROL_REQUEST_METHOD='POST')
+        self.assertNotIn('Access-Control-Allow-Origin', denied)

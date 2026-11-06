@@ -46,3 +46,25 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+
+class RegisterUserSerializer(UserSerializer):
+    """Entrada pública: no permite asignar privilegios ni estado."""
+    password_confirm = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    class Meta(UserSerializer.Meta):
+        fields = ['id', 'username', 'email', 'first_name', 'last_name',
+                  'telefono', 'password', 'password_confirm']
+
+    def validate(self, attrs):
+        confirmation = attrs.pop('password_confirm')
+        if attrs.get('password') != confirmation:
+            raise serializers.ValidationError({'password_confirm': 'Las contraseñas no coinciden.'})
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        # El registro público siempre crea una cuenta normal y activa.
+        validated_data['is_staff'] = False
+        validated_data['is_superuser'] = False
+        validated_data['is_active'] = True
+        return super().create(validated_data)

@@ -47,6 +47,7 @@ THIRD_APPS = [
     'django_filters',
     'rest_framework_simplejwt',
     'drf_yasg',
+    'corsheaders',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
@@ -57,6 +58,7 @@ REST_FRAMEWORK = {
 OWN_APPS = [
     'products',
     'users',
+    'integrations',
 ]
 
 INSTALLED_APPS = BASE_APPS + THIRD_APPS + OWN_APPS
@@ -64,6 +66,7 @@ INSTALLED_APPS = BASE_APPS + THIRD_APPS + OWN_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -170,3 +173,10 @@ MAILERS = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
+# Solo los orígenes locales de Vite; no se abren todos los dominios.
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]

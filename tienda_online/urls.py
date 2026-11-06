@@ -14,6 +14,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('products.urls')),
     path('api/v1/', include('users.urls')),
+    path('api/v1/integrations/', include('integrations.urls')),
     # Compatibilidad con las rutas de la Unidad 1.
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair_legacy'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh_legacy'),
