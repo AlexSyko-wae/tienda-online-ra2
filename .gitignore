@@ -1,0 +1,41 @@
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+db.sqlite3
+*.log
+staticfiles/
+media/
+
+# Variables de entorno / secretos
+.env
+.env.*
+*.env
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Testing / cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Archivos temporales
+*.tmp
+*.temp
+!.env.example
+node_modules/
