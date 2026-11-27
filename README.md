@@ -1,5 +1,52 @@
 # Tienda Online con Django React JWT y APIs
 
+## Ejecutar el proyecto completo con Docker Compose
+
+Requiere Docker Desktop en ejecución. Desde la raíz del repositorio, donde está
+`docker-compose.yml`, copia `.env.example` a `.env` y reemplaza los valores de
+`DJANGO_SECRET_KEY` y `DB_PASSWORD` por claves privadas propias. En PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+# Edita .env y cambia las dos claves antes de continuar.
+docker compose up -d --build
+docker ps
+```
+
+Abre React en http://localhost:5173 y Swagger en http://localhost:8000/swagger/.
+La primera descarga y compilación pueden tardar varios minutos. El backend ejecuta
+automáticamente las migraciones cuando MySQL está listo. La base `db` solo se
+comunica con Django por la red interna; no ocupa el puerto 3306 de Windows.
+El navegador llama a `localhost:8000`, mientras Django llega a MySQL por el
+nombre `db` de Compose. `ALLOWED_HOSTS=*` en el ejemplo sirve únicamente para
+esta práctica local: cámbialo por hosts concretos antes de publicar el sistema.
+
+Para comprobar la persistencia, registra una cuenta en `/register`, anota su
+correo y ejecuta:
+
+```powershell
+docker compose down
+docker compose up -d
+docker ps
+```
+
+Vuelve a entrar con la misma cuenta en `/login`. Si el navegador conservó el
+token, quizá se abra directamente el dashboard. La sesión del navegador puede
+caducar aunque el usuario siga guardado; poder iniciar sesión de nuevo demuestra
+que la cuenta persiste. Toma capturas del registro, los comandos y el acceso
+después del reinicio para el informe. `docker compose down` conserva el volumen
+`mysql_data`; **no uses `docker compose down -v`** para esta prueba. Mantén la
+misma clave secreta en `.env` para que los JWT previos sigan siendo válidos.
+
+Si algo falla, ejecuta `docker compose logs db backend frontend --tail=100`.
+Para iniciar otra vez usa `docker compose up -d`. El archivo `.env` está
+excluido de Git y del contexto de construcción; nunca subas sus claves.
+
+**Conclusión de la práctica:** Compose deja definidas las dependencias, la red,
+los puertos, la configuración y el volumen. Otra computadora necesita Docker y
+un `.env` privado para levantar React, Django y MySQL con un comando, sin instalar
+Python, Node y MySQL por separado.
+
 Continuación de la Práctica 4 y adaptación del manual de las páginas 13 a 35. El backend existente conserva productos, categorías, el usuario personalizado con email y teléfono, Swagger y las correcciones de contraseñas. Se agrega un frontend React con Vite, registro público, sesión persistente, clima externo y un consumidor SOAP en Django.
 
 ## Requisitos
